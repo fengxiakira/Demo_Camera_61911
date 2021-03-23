@@ -1,0 +1,4 @@
+#Tue Mar 23 12:25:45 EDT 2021
+base.0=/Users/akira/Desktop/4443/Lab/Demo_Camera_61911/app/build/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
