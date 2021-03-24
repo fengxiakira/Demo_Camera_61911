@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,6 +30,8 @@ import java.util.Locale;
 
 public class ImageViewerActivity extends AppCompatActivity implements OnTouchListener
 {
+	final static String MYDEBUG = "MYDEBUG"; // for Log.i messages
+
 	RelativeLayout container; // parent view (holds the image view)
 	ImageView imageView; // holds the JPG file
 	TextView textView; // status info
@@ -133,6 +136,7 @@ public class ImageViewerActivity extends AppCompatActivity implements OnTouchLis
 	private void displayImage(int idx)
 	{
 		// form the path to the image in this Android device's storage
+//		todo: image path
 		String path = directory + File.separator + filenames[idx];
 
 		// download the image
@@ -342,6 +346,54 @@ public class ImageViewerActivity extends AppCompatActivity implements OnTouchLis
 		return r;
 	}
 
+	// setup an Options menu (used for Send)
+	// TODO: ADD NEW FEATURE?
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		super.onCreateOptionsMenu(menu);
+//		MenuInflater inflater = getMenuInflater();
+//		inflater.inflate(R.menu.menu, menu);
+		menu.add(SEND, SEND, SEND, R.string.menu_send);
+		return true;
+	}
+
+	// handle a "Settings" selection in the options menu by launching SettingsActivity
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		switch (item.getItemId())
+		{
+			case SEND:
+				// send jpg by email using an intent
+				String path = "file://" + directory  + File.separator+filenames[index];
+//				Log.i(MYDEBUG,"IMG PATH: "+path);
+				Uri screenshotUri = Uri.parse(path);
+				Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+				emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Send " + filenames[index]);
+				emailIntent.putExtra(Intent.EXTRA_STREAM, screenshotUri);
+				emailIntent.setType("image/jpg");
+				startActivity(Intent.createChooser(emailIntent, "Send picture using..."));
+				return true;
+
+		}
+		return false;
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (requestCode == SEND_MODE)
+		{
+			//          successful/failure send
+			if (requestCode == Activity.RESULT_OK)
+				Toast.makeText(this, "File sent successfully", Toast.LENGTH_LONG).show();
+			else
+				Toast.makeText(this, "File sent failed", Toast.LENGTH_LONG).show();
+		}
+	}
+
 	public void onBackPressed()
 	{
 		this.setResult(Activity.RESULT_OK);
@@ -441,47 +493,7 @@ public class ImageViewerActivity extends AppCompatActivity implements OnTouchLis
 		}
 	}
 
-	// setup an Options menu (used for Send)
-	// TODO: ADD NEW FEATURE?
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
-		super.onCreateOptionsMenu(menu);
-//		MenuInflater inflater = getMenuInflater();
-//		inflater.inflate(R.menu.menu, menu);
-		menu.add(SEND, SEND, SEND, R.string.menu_send);
-		return true;
-	}
 
-	// handle a "Settings" selection in the options menu by launching SettingsActivity
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		switch (item.getItemId())
-		{
-			case SEND:
-				// launch the SendActivity to allow the user to change the app's settings
-				Intent i = new Intent(getApplicationContext(), SendActivity.class);
-//              // TODO: CHECK SEND FOLLOWUP
-				startActivityForResult(i, SEND_MODE); // see comment for onActivityResult
-				return true;
-
-		}
-		return false;
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		if (requestCode == SEND_MODE)
-		{
-	//          successful/failure send
-			if (requestCode == Activity.RESULT_OK)
-				Toast.makeText(this, "File sent successfully", Toast.LENGTH_LONG).show();
-			else
-				Toast.makeText(this, "File sent failed", Toast.LENGTH_LONG).show();
-		}
-	}
 
 	// ===========================================================================================================
 	// detector for fling or double tap gestures
